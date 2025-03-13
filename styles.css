@@ -477,6 +477,136 @@ header {
     margin-top: 1rem;
 }
 
+/* Goal Styles */
+.goals-list {
+    margin-bottom: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.goal-item {
+    background-color: #fff;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.goal-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.goal-title {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #2c3e50;
+}
+
+.goal-amount {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.goal-progress-container {
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.goal-progress-bar {
+    height: 100%;
+    background-color: var(--color-primary);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.goal-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.goal-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.goal-delete-btn {
+    color: var(--color-danger);
+    background: none;
+    padding: 2px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.goal-delete-btn:hover {
+    opacity: 1;
+}
+
+.empty-goals-message {
+    text-align: center;
+    padding: 15px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.icon-btn {
+    background: none;
+    color: var(--color-primary);
+    font-size: 1rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.icon-btn:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+.secondary-btn {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 8px 16px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.secondary-btn:hover {
+    background-color: #dee2e6;
+}
+
 /* Footer */
 footer {
     text-align: center;

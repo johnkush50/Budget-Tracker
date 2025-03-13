@@ -8,7 +8,7 @@ import { formatCurrency } from './utils.js';
 import { initTransactions, calculateTotalIncome, calculateTotalExpenses, filterTransactionsByMonth, getCategoryBreakdown } from './transactions.js';
 import { initNavigation, setupNavigationListeners, getCurrentMonthYear } from './navigation.js';
 import { initCharts, updateSummaryChart, updateCategoryChart } from './charts.js';
-import { initGoals, setupGoalListeners, updateGoalDisplay } from './goals.js';
+import { initGoals, setupGoalListeners, renderGoalsList } from './goals.js';
 import { initUI, renderTransactionsTable, updateSummaryNumbers } from './ui.js';
 import { onDOMReady } from './utils.js';
 
@@ -64,7 +64,7 @@ function updateDashboard() {
     updateSummaryNumbers(totalIncome, totalExpenses);
     updateCharts(totalIncome, totalExpenses, month, year);
     renderTransactionsTable();
-    updateGoalDisplay();
+    renderGoalsList();
 }
 
 /**
