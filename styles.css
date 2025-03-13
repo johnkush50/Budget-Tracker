@@ -249,6 +249,179 @@ button:hover {
     color: #b52e3e;
 }
 
+/* Monthly Goal Styles */
+#monthly-goal-section {
+    margin-bottom: 30px;
+}
+
+.goal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.goal-form .form-group {
+    margin-bottom: 0;
+}
+
+#goal-amount,
+#goal-days,
+#goal-difference {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+#goal-amount:focus,
+#goal-days:focus,
+#goal-difference:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+#goal-type {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+#goal-type:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+#set-goal-btn {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+#set-goal-btn:hover {
+    background-color: #0056b3;
+}
+
+#goal-status {
+    margin-top: 15px;
+}
+
+#current-goal {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+#goal-progress {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #28a745; /* Green for on track */
+    margin-bottom: 10px;
+    transition: color 0.3s ease;
+}
+
+.goal-progress-container {
+    height: 10px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.goal-progress-bar {
+    height: 100%;
+    background-color: #28a745; /* Green for on track */
+    border-radius: 5px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Off track goal progress bar */
+.goal-progress-bar.off-track {
+    background-color: #dc3545; /* Red for off track */
+}
+
+/* Recurrence Options Styles */
+#recurrence-options {
+    margin-top: 10px;
+}
+
+#recurrence-interval {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    width: 100%;
+}
+
+#recurrence-interval:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Transaction Lists Styles */
+#income-list-section,
+#expense-list-section {
+    margin-bottom: 30px;
+}
+
+#income-transactions,
+#expense-transactions {
+    list-style-type: none;
+    padding: 0;
+}
+
+#income-transactions li,
+#expense-transactions li {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.3s ease;
+}
+
+#income-transactions li:last-child,
+#expense-transactions li:last-child {
+    border-bottom: none;
+}
+
+#income-transactions li:hover,
+#expense-transactions li:hover {
+    background-color: #f0f0f0;
+}
+
+/* Transaction badges */
+.recurring-badge {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background-color: #17a2b8; /* Info blue */
+    color: white;
+    margin-left: 8px;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none;
+}
+
+/* The monthly budget styles have been replaced by monthly goal styles */
+
 /* Footer Styles */
 footer {
     text-align: center;
@@ -279,6 +452,26 @@ footer {
     }
     
     .category-item .category-amount {
+        align-self: flex-end;
+    }
+    
+    .budget-input-group {
+        flex-direction: column;
+    }
+    
+    #set-budget-btn,
+    #set-goal-btn {
+        width: 100%;
+    }
+    
+    #income-transactions li,
+    #expense-transactions li {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    #income-transactions li .transaction-right,
+    #expense-transactions li .transaction-right {
         align-self: flex-end;
     }
 }
