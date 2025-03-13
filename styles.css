@@ -3,6 +3,18 @@
  * A modern, responsive design for a practical budget tracking application
  */
 
+:root {
+    --color-primary: #007BFF;
+    --color-primary-dark: #0056b3;
+    --color-success: #28a745;
+    --color-warning: #ffc107;
+    --color-danger: #dc3545;
+    --color-light: #f8f9fa;
+    --color-dark: #343a40;
+    --color-text: #495057;
+    --color-border: #ced4da;
+}
+
 /* Base Styles & Reset */
 * {
     margin: 0;
@@ -63,14 +75,14 @@ input:focus, select:focus {
 }
 
 .primary-btn {
-    background-color: #007BFF;
+    background-color: var(--color-primary);
     color: white;
     padding: 10px 15px;
     font-weight: 500;
 }
 
 .primary-btn:hover {
-    background-color: #0056b3;
+    background-color: var(--color-primary-dark);
 }
 
 .small-btn {
@@ -85,7 +97,7 @@ input:focus, select:focus {
 }
 
 .delete-btn {
-    background-color: #dc3545;
+    background-color: var(--color-danger);
     color: white;
     padding: 8px 12px;
 }
@@ -99,11 +111,11 @@ input:focus, select:focus {
 }
 
 .positive {
-    color: #28a745 !important;
+    color: var(--color-success) !important;
 }
 
 .negative {
-    color: #dc3545 !important;
+    color: var(--color-danger) !important;
 }
 
 section {
@@ -212,7 +224,7 @@ header {
 
 .progress-bar {
     height: 100%;
-    background-color: #28a745;
+    background-color: var(--color-success);
     transition: width 0.3s ease, background-color 0.3s ease;
 }
 
@@ -225,7 +237,18 @@ header {
 
 .form-row {
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.form-row > * {
+    flex: 1;
+    min-width: 120px;
+}
+
+.form-row input, .form-row select {
+    width: 100%;
 }
 
 /* Summary Card */
@@ -299,7 +322,7 @@ header {
 
 .category-bar {
     height: 100%;
-    background-color: #007BFF;
+    background-color: var(--color-primary);
     border-radius: 4px;
     transition: width 0.3s ease;
 }
@@ -464,6 +487,7 @@ header {
 .form-group label {
     font-size: 0.9rem;
     color: #495057;
+    padding: 6px 0;
 }
 
 .recurrence-input {
@@ -475,6 +499,79 @@ header {
     display: flex;
     justify-content: space-between;
     margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.form-actions button {
+    flex: 1;
+    min-width: 100px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* Custom Checkbox Styling */
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    vertical-align: middle;
+    cursor: pointer;
+    position: relative;
+}
+
+input[type="checkbox"]:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+input[type="checkbox"]:checked::after {
+    content: '\2714';
+    position: absolute;
+    top: 0;
+    left: 3px;
+    font-size: 14px;
+    color: white;
+    line-height: 18px;
+}
+
+input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Checkbox Label Styling */
+label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.recurring-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background-color: rgba(0, 123, 255, 0.1);
+    color: var(--color-primary);
+    border-radius: 50%;
+    font-size: 0.7rem;
+    margin-left: 5px;
+    position: relative;
+    top: 0;
 }
 
 /* Goal Styles */
@@ -491,6 +588,8 @@ header {
     margin-bottom: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     position: relative;
+    padding-right: 35px; /* Make room for actions */
+    overflow: hidden;
 }
 
 .goal-item-header {
@@ -538,7 +637,8 @@ header {
     top: 10px;
     right: 10px;
     display: flex;
-    gap: 5px;
+    gap: 8px;
+    z-index: 2;
 }
 
 .goal-delete-btn {
@@ -639,6 +739,12 @@ footer {
     .transaction-filters {
         width: 100%;
         flex-wrap: wrap;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .transaction-filters > * {
+        margin-bottom: 8px;
     }
     
     .search-container, .transaction-filters select {
@@ -652,6 +758,14 @@ footer {
     #transactions-table th:nth-child(3), 
     #transactions-table td:nth-child(3) {
         display: none;
+    }
+    
+    #transactions-table th:nth-child(2), 
+    #transactions-table td:nth-child(2) {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
@@ -667,12 +781,72 @@ footer {
     .form-row {
         flex-direction: column;
     }
-    
-    #transactions-table th:nth-child(2), 
-    #transactions-table td:nth-child(2) {
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+}
+
+/* Responsive Form Layout Improvements */
+#goal-form {
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* Recurring badge improvements */
+.recurring-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background-color: rgba(0, 123, 255, 0.1);
+    color: var(--color-primary);
+    border-radius: 50%;
+    font-size: 0.7rem;
+    margin-left: 5px;
+    position: relative;
+    top: 0;
+}
+
+/* Fix any potential overlapping in the goals list */
+.goal-item {
+    position: relative;
+    padding-right: 35px; /* Make room for actions */
+    overflow: hidden;
+}
+
+.goal-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+/* Make sure the goal form has sufficient spacing */
+#goal-form .form-group {
+    margin: 10px 0;
+}
+
+/* Fix checkbox alignment in the transaction forms */
+#quick-recurring,
+#modal-recurring {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: 8px;
+}
+
+/* Make transaction rows more legible */
+.transaction-row td {
+    padding: 10px 8px;
+    vertical-align: middle;
+}
+
+/* Ensure charts don't overflow on small screens */
+#summary-chart-container,
+#category-chart-container {
+    width: 100%;
+    max-height: 250px;
+    margin-top: 15px;
+    position: relative;
 }
