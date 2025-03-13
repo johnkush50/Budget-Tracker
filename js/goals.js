@@ -1,211 +1,216 @@
 /**
- * goals.js - Monthly Goals Functionality
- * Handles all goal-related operations
+ * goals.js - Handles budget goal management
  */
 
-// Toggle goal period section based on goal type
-function toggleGoalPeriodSection() {
-    if (goalTypeSelect.value === 'period') {
-        goalPeriodContainer.classList.remove('hidden');
-    } else {
-        goalPeriodContainer.classList.add('hidden');
+import { formatCurrency, toggleClass } from './utils.js';
+import { saveData, loadData, STORAGE_KEYS } from './storage.js';
+import { calculateTotalIncome, calculateTotalExpenses } from './transactions.js';
+import { getCurrentMonthYear } from './navigation.js';
+
+// Goal state
+let currentGoal = {
+    type: null, // positive, negative, period
+    amount: 0,
+    period: null, // for period goals
+    days: 0, // for period goals
+    difference: 0, // for period goals
+    active: false
+};
+
+/**
+ * Initialize goals module
+ */
+export function initGoals() {
+    loadGoalSettings();
+    updateGoalDisplay();
+}
+
+/**
+ * Set up goals-related event listeners
+ */
+export function setupGoalListeners() {
+    // Set goal button
+    const setGoalBtn = document.getElementById('set-goal-btn');
+    if (setGoalBtn) {
+        setGoalBtn.addEventListener('click', saveGoalSettings);
+    }
+    
+    // Goal type change - toggle period section
+    const goalTypeSelect = document.getElementById('goal-type');
+    if (goalTypeSelect) {
+        goalTypeSelect.addEventListener('change', togglePeriodOptions);
+    }
+    
+    // Listen for transactions or month changes to update goal display
+    window.addEventListener('transactionsUpdated', updateGoalDisplay);
+    window.addEventListener('monthChanged', updateGoalDisplay);
+}
+
+/**
+ * Toggle period options based on goal type
+ */
+function togglePeriodOptions() {
+    const goalType = document.getElementById('goal-type');
+    const periodOptions = document.getElementById('period-options');
+    
+    if (goalType && periodOptions) {
+        // Only show period options for 'period' type goals
+        toggleClass(periodOptions, 'hidden', goalType.value !== 'period');
     }
 }
 
-// Save goal settings
-function saveGoalSettings(e) {
-    if (e) e.preventDefault();
+/**
+ * Save goal settings
+ */
+function saveGoalSettings() {
+    const goalType = document.getElementById('goal-type');
+    const goalAmount = document.getElementById('goal-amount');
+    const goalDays = document.getElementById('goal-days');
+    const goalDifference = document.getElementById('goal-difference');
     
-    const goalType = goalTypeSelect.value;
-    const goalAmount = parseFloat(goalAmountInput.value);
+    if (!goalType || !goalAmount) return;
     
-    if (isNaN(goalAmount) || goalAmount <= 0) {
-        alert('Please enter a valid goal amount');
+    // Validate amount
+    const amount = parseFloat(goalAmount.value);
+    if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid goal amount greater than zero.');
         return;
     }
     
-    let goal = {
-        type: goalType,
-        amount: goalAmount,
-        days: 0,
-        difference: 0
-    };
+    // Build goal object based on type
+    const isPeriodGoal = goalType.value === 'period';
     
-    if (goalType === 'period') {
-        const days = parseInt(goalPeriodInput.value);
+    // For period goals, validate additional fields
+    if (isPeriodGoal) {
+        if (!goalDays || !goalDifference) return;
+        
+        const days = parseInt(goalDays.value);
+        const difference = parseFloat(goalDifference.value);
         
         if (isNaN(days) || days <= 0) {
-            alert('Please enter a valid number of days for your goal period');
+            alert('Please enter a valid number of days greater than zero.');
             return;
         }
         
-        goal.days = days;
-        goal.difference = parseFloat(goalPeriodInput.value) || 0;
-    }
-    
-    // Save goal settings to localStorage with the month and year
-    const monthYearKey = `${currentMonth}-${currentYear}`;
-    localStorage.setItem(`monthlyGoal-${monthYearKey}`, JSON.stringify(goal));
-    
-    updateGoalDisplay();
-    alert('Goal set successfully!');
-}
-
-// Load goal settings from localStorage
-function loadGoalSettings() {
-    const monthYearKey = `${currentMonth}-${currentYear}`;
-    const savedGoal = localStorage.getItem(`monthlyGoal-${monthYearKey}`);
-    
-    if (savedGoal) {
-        const goal = JSON.parse(savedGoal);
-        
-        goalTypeSelect.value = goal.type;
-        goalAmountInput.value = goal.amount;
-        
-        if (goal.type === 'period') {
-            goalPeriodContainer.classList.remove('hidden');
-            goalPeriodInput.value = goal.days;
-        } else {
-            goalPeriodContainer.classList.add('hidden');
+        if (isNaN(difference)) {
+            alert('Please enter a valid target difference amount.');
+            return;
         }
         
-        goalDisplay.classList.remove('hidden');
-        noGoalMessage.classList.add('hidden');
+        currentGoal = {
+            type: goalType.value,
+            amount: amount,
+            period: 'custom',
+            days: days,
+            difference: difference,
+            active: true
+        };
     } else {
-        goalDisplay.classList.add('hidden');
-        noGoalMessage.classList.remove('hidden');
-        
-        // Reset goal form
-        goalAmountInput.value = '';
-        goalTypeSelect.value = 'positive';
-        goalPeriodInput.value = '';
-        goalPeriodContainer.classList.add('hidden');
+        // Simple goal (positive or negative)
+        currentGoal = {
+            type: goalType.value,
+            amount: amount,
+            active: true
+        };
     }
     
+    // Save and update display
+    saveGoalToStorage();
     updateGoalDisplay();
+    
+    // Reset form
+    goalAmount.value = '';
+    if (goalDays) goalDays.value = '';
+    if (goalDifference) goalDifference.value = '';
 }
 
-// Update goal display based on current settings
-function updateGoalDisplay() {
-    const monthYearKey = `${currentMonth}-${currentYear}`;
-    const savedGoal = localStorage.getItem(`monthlyGoal-${monthYearKey}`);
+/**
+ * Save goal to storage
+ */
+function saveGoalToStorage() {
+    saveData(STORAGE_KEYS.BUDGET_GOAL, currentGoal);
+}
+
+/**
+ * Load goal settings from storage
+ */
+function loadGoalSettings() {
+    const savedGoal = loadData(STORAGE_KEYS.BUDGET_GOAL, null);
+    if (savedGoal) {
+        currentGoal = savedGoal;
+    }
+}
+
+/**
+ * Update goal display based on current goal and transactions
+ */
+export function updateGoalDisplay() {
+    const goalStatus = document.getElementById('goal-status');
+    const currentGoalText = document.getElementById('current-goal');
+    const goalProgress = document.getElementById('goal-progress');
+    const goalProgressBar = document.getElementById('goal-progress-bar');
     
-    if (!savedGoal) {
-        goalDisplay.textContent = 'No goal set for this month';
-        goalProgressContainer.textContent = '$0.00';
+    if (!goalStatus || !currentGoalText || !goalProgress || !goalProgressBar) return;
+    
+    // If no active goal, show default message
+    if (!currentGoal.active) {
+        currentGoalText.textContent = 'No goal set for this month';
+        goalProgress.textContent = '$0.00';
         goalProgressBar.style.width = '0%';
-        goalProgressContainer.className = 'stat-value';
         return;
     }
     
-    const goal = JSON.parse(savedGoal);
+    // Get current financial status
+    const { month, year } = getCurrentMonthYear();
+    const totalIncome = calculateTotalIncome(month, year);
+    const totalExpenses = calculateTotalExpenses(month, year);
+    const currentBalance = totalIncome - totalExpenses;
     
-    // Calculate current progress based on goal type
-    const totalIncome = calculateTotalIncome();
-    const totalExpenses = calculateTotalExpenses();
-    const balance = totalIncome - totalExpenses;
+    // Calculate progress based on goal type
+    let progress = 0;
+    let goalText = '';
+    let progressPercentage = 0;
     
-    let goalDescription = '';
-    let currentValue = 0;
-    let targetValue = goal.amount;
-    let percentage = 0;
-    let onTrack = false;
-    
-    if (goal.type === 'positive') {
-        // Balance above a certain amount
-        goalDescription = `Goal: Achieve Balance Above $${goal.amount.toFixed(2)}`;
-        currentValue = balance;
-        percentage = Math.min((balance / goal.amount) * 100, 100);
-        onTrack = balance >= goal.amount;
-    } else if (goal.type === 'negative') {
-        // Keep expenses below a certain amount
-        goalDescription = `Goal: Keep Expenses Below $${goal.amount.toFixed(2)}`;
-        currentValue = totalExpenses;
-        percentage = (1 - Math.min(totalExpenses / goal.amount, 1)) * 100;
-        onTrack = totalExpenses <= goal.amount;
-    } else if (goal.type === 'period') {
-        // Target amount after X days
-        const startDate = new Date(currentYear, currentMonth - 1, 1);
-        const currentDate = new Date();
-        const daysPassed = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-        const daysRemaining = Math.max(0, goal.days - daysPassed);
+    if (currentGoal.type === 'positive') {
+        // Goal to achieve balance above a certain amount
+        goalText = `Goal: Balance above ${formatCurrency(currentGoal.amount)}`;
+        progress = currentBalance;
+        progressPercentage = Math.min(100, Math.max(0, (progress / currentGoal.amount) * 100));
+    } else if (currentGoal.type === 'negative') {
+        // Goal to keep expenses below a certain amount
+        goalText = `Goal: Keep expenses below ${formatCurrency(currentGoal.amount)}`;
+        progress = totalExpenses;
+        progressPercentage = Math.min(100, Math.max(0, (progress / currentGoal.amount) * 100));
         
-        goalDescription = `Goal: ${goal.difference >= 0 ? 'Increase' : 'Decrease'} by $${Math.abs(goal.difference).toFixed(2)} in ${goal.days} days`;
-        currentValue = balance;
-        percentage = (daysPassed / goal.days) * 100;
-        
-        // Check if on track based on daily rate needed
-        const dailyRateNeeded = goal.difference / goal.days;
-        const currentDailyRate = daysPassed > 0 ? balance / daysPassed : 0;
-        onTrack = (goal.difference >= 0 && currentDailyRate >= dailyRateNeeded) || 
-                 (goal.difference < 0 && currentDailyRate <= dailyRateNeeded);
-    }
-    
-    // Update the goal display
-    goalTypeDisplay.textContent = goalDescription;
-    goalCurrentValue.textContent = `$${currentValue.toFixed(2)}`;
-    
-    // Update progress bar
-    percentage = Math.min(100, Math.max(0, percentage));
-    goalProgressBar.style.width = `${percentage}%`;
-    goalPercentage.textContent = `${percentage.toFixed(1)}%`;
-    
-    // Set progress bar color based on whether we're on track
-    if (onTrack) {
-        goalProgressBar.className = 'progress-bar success';
-    } else {
-        goalProgressBar.className = 'progress-bar danger';
-    }
-}
-
-// Evaluate goal status for reporting
-function evaluateGoalStatus(goal) {
-    const totalIncome = calculateTotalIncome();
-    const totalExpenses = calculateTotalExpenses();
-    const balance = totalIncome - totalExpenses;
-    
-    let onTrack = false;
-    let message = '';
-    let percentage = 0;
-    
-    if (goal.type === 'positive') {
-        // Goal: Be above a certain amount
-        percentage = Math.min((balance / goal.amount) * 100, 100);
-        onTrack = balance >= goal.amount;
-        message = `$${balance.toFixed(2)} of $${goal.amount.toFixed(2)}`;
-    } else if (goal.type === 'negative') {
-        // Goal: Be below a certain amount (typically for expense tracking)
-        percentage = Math.min((1 - (totalExpenses / goal.amount)) * 100, 100);
-        onTrack = totalExpenses <= goal.amount;
-        message = `$${totalExpenses.toFixed(2)} of $${goal.amount.toFixed(2)}`;
-    } else if (goal.type === 'period') {
-        // Goal: Achieve target difference after X days
-        const today = new Date();
-        const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
-        const daysPassed = Math.floor((today - startOfMonth) / (1000 * 60 * 60 * 24)) + 1;
-        const daysRemaining = goal.days - daysPassed;
-        
-        // Calculate projected balance based on current rate
-        const dailyRate = daysPassed > 0 ? balance / daysPassed : 0;
-        const projectedBalance = balance + (dailyRate * daysRemaining);
-        
-        if (goal.difference >= 0) {
-            // Goal to be above a target
-            percentage = Math.min((projectedBalance / goal.difference) * 100, 100);
-            onTrack = projectedBalance >= goal.difference;
-            message = `Projected: $${projectedBalance.toFixed(2)}`;
+        // Different color logic for expense goals (lower is better)
+        if (progressPercentage < 50) {
+            goalProgressBar.style.backgroundColor = 'var(--color-success)';
+        } else if (progressPercentage < 80) {
+            goalProgressBar.style.backgroundColor = 'var(--color-warning)';
         } else {
-            // Goal to be below a target (negative difference)
-            const targetExpense = Math.abs(goal.difference);
-            percentage = Math.min((1 - (projectedBalance / targetExpense)) * 100, 100);
-            onTrack = projectedBalance <= targetExpense;
-            message = `Projected: $${projectedBalance.toFixed(2)}`;
+            goalProgressBar.style.backgroundColor = 'var(--color-danger)';
+        }
+    } else if (currentGoal.type === 'period') {
+        // Goal to achieve a target difference after a certain period
+        goalText = `Goal: ${formatCurrency(currentGoal.difference)} after ${currentGoal.days} days`;
+        progress = currentBalance;
+        // For period goals, we'll show current balance against target difference
+        progressPercentage = Math.min(100, Math.max(0, (progress / currentGoal.difference) * 100));
+    }
+    
+    // Update UI
+    currentGoalText.textContent = goalText;
+    goalProgress.textContent = formatCurrency(progress);
+    goalProgressBar.style.width = `${progressPercentage}%`;
+    
+    // Set color for positive/period goals (higher is better)
+    if (currentGoal.type !== 'negative') {
+        if (progressPercentage < 30) {
+            goalProgressBar.style.backgroundColor = 'var(--color-danger)';
+        } else if (progressPercentage < 70) {
+            goalProgressBar.style.backgroundColor = 'var(--color-warning)';
+        } else {
+            goalProgressBar.style.backgroundColor = 'var(--color-success)';
         }
     }
-    
-    return {
-        onTrack,
-        message,
-        percentage: percentage < 0 ? 0 : percentage
-    };
 }

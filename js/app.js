@@ -1,97 +1,83 @@
 /**
- * app.js - Core application functionality
- * Handles initialization and global state management
+ * app.js - Main application file
+ * Serves as the entry point for the Budget Tracker application
  */
 
-// Global variables
-let transactions = [];
-let filteredTransactions = [];
-let currentMonth;
-let currentYear;
-let currentPage = 1;
-const itemsPerPage = 10;
+// Import modules
+import { formatCurrency } from './utils.js';
+import { initTransactions, calculateTotalIncome, calculateTotalExpenses, filterTransactionsByMonth, getCategoryBreakdown } from './transactions.js';
+import { initNavigation, setupNavigationListeners, getCurrentMonthYear } from './navigation.js';
+import { initCharts, updateSummaryChart, updateCategoryChart } from './charts.js';
+import { initGoals, setupGoalListeners, updateGoalDisplay } from './goals.js';
+import { initUI, renderTransactionsTable, updateSummaryNumbers } from './ui.js';
+import { onDOMReady } from './utils.js';
 
-// Chart variables
-let summaryChartCtx;
-let categoryChartCtx;
-let summaryChart = null;
-let categoryChart = null;
-
-// Initialize the application
+/**
+ * Initialize the application
+ */
 function initializeApp() {
-    // Check if DOM elements are loaded
-    if (!document.getElementById('current-month')) {
-        console.error('DOM elements not loaded yet. Retrying in 100ms...');
-        setTimeout(initializeApp, 100);
-        return;
-    }
+    console.log('Initializing Budget Tracker application');
     
-    // Set current date
-    const currentDate = new Date();
-    currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
-    currentYear = currentDate.getFullYear();
-    updateMonthDisplay();
+    // Initialize all modules
+    initNavigation();
+    const { month, year } = getCurrentMonthYear();
+    initTransactions(month, year);
+    initCharts();
+    initGoals();
+    initUI();
     
-    // Load saved data
-    loadTransactions();
-    loadGoalSettings();
-    
-    // Initialize Chart.js contexts
-    summaryChartCtx = document.getElementById('summary-chart')?.getContext('2d');
-    categoryChartCtx = document.getElementById('category-chart')?.getContext('2d');
-    
-    // Set up event listeners 
+    // Set up event listeners
     setupEventListeners();
     
-    // Initial UI update
-    updateUI();
+    // Update UI with initial data
+    updateDashboard();
+    
+    console.log('Application initialized successfully');
 }
 
-// Set up all event listeners
+/**
+ * Set up application event listeners
+ */
 function setupEventListeners() {
-    // Month navigation
-    prevMonthBtn.addEventListener('click', goToPreviousMonth);
-    nextMonthBtn.addEventListener('click', goToNextMonth);
+    // Set up module-specific event listeners
+    setupNavigationListeners();
+    setupGoalListeners();
     
-    // Transactions
-    addTransactionBtn.addEventListener('click', openAddTransactionModal);
-    closeModalBtn.addEventListener('click', closeModal);
-    transactionForm.addEventListener('submit', saveTransaction);
-    deleteTransactionBtn.addEventListener('click', confirmDeleteTransaction);
+    // Listen for month changes to update dashboard
+    window.addEventListener('monthChanged', updateDashboard);
     
-    // Quick Add Transaction
-    quickForm.addEventListener('submit', handleQuickAdd);
-    
-    // Recurrence
-    recurringCheckbox.addEventListener('change', toggleRecurrenceOptions);
-    quickRecurringCheckbox.addEventListener('change', toggleQuickRecurrenceOptions);
-    
-    // Filters
-    searchInput.addEventListener('input', filterTransactions);
-    filterTypeSelect.addEventListener('change', filterTransactions);
-    filterCategorySelect.addEventListener('change', filterTransactions);
-    
-    // Pagination
-    prevPageBtn.addEventListener('click', () => changePage(-1));
-    nextPageBtn.addEventListener('click', () => changePage(1));
-    
-    // Goal settings
-    goalForm.addEventListener('submit', saveGoalSettings);
-    goalTypeSelect.addEventListener('change', toggleGoalPeriodSection);
+    // Listen for transaction updates to refresh dashboard
+    window.addEventListener('transactionsUpdated', updateDashboard);
 }
 
-// General UI update function
-function updateUI() {
-    filterTransactions(); // This will also update the transaction table
-    updateSummary();
-    updateCategoryBreakdown();
+/**
+ * Update dashboard with current data
+ */
+function updateDashboard() {
+    const { month, year } = getCurrentMonthYear();
+    
+    // Calculate summary numbers
+    const totalIncome = calculateTotalIncome(month, year);
+    const totalExpenses = calculateTotalExpenses(month, year);
+    
+    // Update UI components
+    updateSummaryNumbers(totalIncome, totalExpenses);
+    updateCharts(totalIncome, totalExpenses, month, year);
+    renderTransactionsTable();
     updateGoalDisplay();
 }
 
-// Helper function to generate a unique ID
-function generateID() {
-    return Math.random().toString(36).substr(2, 9);
+/**
+ * Update charts with current data
+ */
+function updateCharts(income, expenses, month, year) {
+    // Update summary chart with income vs expenses
+    updateSummaryChart(income, expenses);
+    
+    // Get and update category breakdown
+    const categoryData = getCategoryBreakdown(month, year);
+    updateCategoryChart(categoryData);
 }
 
-// Start app when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeApp);
+// Initialize the application when DOM content is loaded
+onDOMReady(initializeApp);
